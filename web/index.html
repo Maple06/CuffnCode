@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CuffnCode — A retrofitted blood pressure measurement system for teaching and research. Web-based oscillometric BP analysis dashboard.">
+  <title>CuffnCode — Blood Pressure Analysis Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <nav id="navbar">
+    <div class="nav-left">
+      <div class="logo-container">
+        <img src="images/cuffncode.png" alt="CuffnCode Logo" class="logo-img" id="logo-img">
+        <div class="logo-text">
+          <span class="logo-title">CuffnCode</span>
+          <span class="logo-subtitle">Blood Pressure Analysis</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-center">
+      <button class="nav-tab active" data-tab="dashboard" id="tab-dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-tab" data-tab="signals" id="tab-signals">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Signal Analysis
+      </button>
+      <button class="nav-tab" data-tab="about" id="tab-about">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        About System
+      </button>
+    </div>
+    <div class="nav-right">
+      <div class="status-indicator" id="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- ============ DASHBOARD TAB ============ -->
+    <section class="tab-content active" id="content-dashboard">
+
+      <!-- Data Input Panel -->
+      <div class="input-panel glass-card" id="input-panel">
+        <div class="panel-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Data Input
+          </h2>
+          <span class="badge">Step 1</span>
+        </div>
+        <div class="input-options">
+          <button class="input-btn active" id="btn-demo-data" title="Load built-in demonstration data">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Demo Data</span>
+            <small>Pre-loaded oscillometric waveform</small>
+          </button>
+          <button class="input-btn" id="btn-upload-csv" title="Upload your own CSV data">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+            <span>Upload CSV</span>
+            <small>Time (s), Pressure (mmHg) columns</small>
+          </button>
+          <button class="input-btn" id="btn-manual-input" title="Enter blood pressure values directly">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Manual Entry</span>
+            <small>Enter SYS/DIA/BPM directly</small>
+          </button>
+        </div>
+        <input type="file" id="csv-file-input" accept=".csv,.txt" style="display:none">
+
+        <!-- Manual Entry Form (hidden by default) -->
+        <div class="manual-entry-form" id="manual-entry-form" style="display:none">
+          <div class="manual-fields">
+            <div class="field-group">
+              <label for="manual-sys">Systolic (mmHg)</label>
+              <input type="number" id="manual-sys" min="60" max="250" value="120" class="field-input">
+            </div>
+            <div class="field-group">
+              <label for="manual-dia">Diastolic (mmHg)</label>
+              <input type="number" id="manual-dia" min="30" max="150" value="80" class="field-input">
+            </div>
+            <div class="field-group">
+              <label for="manual-bpm">Heart Rate (BPM)</label>
+              <input type="number" id="manual-bpm" min="30" max="220" value="75" class="field-input">
+            </div>
+            <button class="action-btn primary" id="btn-apply-manual">Apply Values</button>
+          </div>
+        </div>
+
+        <!-- Run Analysis Button -->
+        <div class="run-section">
+          <button class="action-btn primary glow-btn" id="btn-run-analysis">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Run Oscillometric Analysis
+          </button>
+          <div class="progress-container" id="progress-container" style="display:none">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span class="progress-text" id="progress-text">Inflating cuff...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vital Signs Cards -->
+      <div class="vitals-grid" id="vitals-grid">
+        <div class="vital-card systolic glass-card" id="card-systolic">
+          <div class="vital-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="vital-label">Systolic</div>
+          <div class="vital-value" id="val-systolic">---</div>
+          <div class="vital-unit">mmHg</div>
+          <div class="vital-tag" id="tag-systolic">SYS</div>
+        </div>
+        <div class="vital-card diastolic glass-card" id="card-diastolic">
+          <div class="vital-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="vital-label">Diastolic</div>
+          <div class="vital-value" id="val-diastolic">---</div>
+          <div class="vital-unit">mmHg</div>
+          <div class="vital-tag" id="tag-diastolic">DIA</div>
+        </div>
+        <div class="vital-card map glass-card" id="card-map">
+          <div class="vital-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+          <div class="vital-label">Mean Arterial</div>
+          <div class="vital-value" id="val-map">---</div>
+          <div class="vital-unit">mmHg</div>
+          <div class="vital-tag" id="tag-map">MAP</div>
+        </div>
+        <div class="vital-card bpm glass-card" id="card-bpm">
+          <div class="vital-icon pulse-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="vital-label">Heart Rate</div>
+          <div class="vital-value" id="val-bpm">---</div>
+          <div class="vital-unit">BPM</div>
+          <div class="vital-tag" id="tag-bpm">PULSE</div>
+        </div>
+      </div>
+
+      <!-- Waveform Display -->
+      <div class="waveform-panel glass-card" id="waveform-panel">
+        <div class="panel-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Cuff Pressure Waveform
+          </h2>
+          <div class="waveform-controls">
+            <button class="icon-btn" id="btn-zoom-in" title="Zoom In">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-zoom-out" title="Zoom Out">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-reset-zoom" title="Reset Zoom">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <canvas id="waveform-canvas"></canvas>
+          <div class="canvas-overlay" id="canvas-overlay">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <p>Load data or run demo to visualize waveform</p>
+          </div>
+        </div>
+        <div class="waveform-legend">
+          <span class="legend-item"><span class="legend-color cuff-color"></span> Cuff Pressure</span>
+          <span class="legend-item"><span class="legend-color osc-color"></span> Oscillations (amplified)</span>
+          <span class="legend-item"><span class="legend-color sys-color"></span> Systolic</span>
+          <span class="legend-item"><span class="legend-color dia-color"></span> Diastolic</span>
+          <span class="legend-item"><span class="legend-color map-color"></span> MAP</span>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Oscillation Envelope + BP Classification -->
+      <div class="bottom-grid">
+        <div class="envelope-panel glass-card" id="envelope-panel">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+              Oscillation Envelope (MAO)
+            </h2>
+          </div>
+          <div class="canvas-wrapper small-canvas">
+            <canvas id="envelope-canvas"></canvas>
+            <div class="canvas-overlay" id="envelope-overlay">
+              <p>Envelope will appear after analysis</p>
+            </div>
+          </div>
+        </div>
+        <div class="classification-panel glass-card" id="classification-panel">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              BP Classification
+            </h2>
+          </div>
+          <div class="classification-body" id="classification-body">
+            <div class="bp-gauge" id="bp-gauge">
+              <div class="gauge-segment optimal">Optimal</div>
+              <div class="gauge-segment normal">Normal</div>
+              <div class="gauge-segment elevated">Elevated</div>
+              <div class="gauge-segment stage1">Stage 1 HTN</div>
+              <div class="gauge-segment stage2">Stage 2 HTN</div>
+              <div class="gauge-segment crisis">Crisis</div>
+              <div class="gauge-pointer" id="gauge-pointer" style="display:none">▲</div>
+            </div>
+            <div class="classification-result" id="classification-result">
+              <span class="classification-label">Awaiting data...</span>
+            </div>
+            <div class="classification-details" id="classification-details">
+              <p class="classification-note">Based on AHA/ACC 2017 guidelines</p>
+            </div>
+          </div>
+
+          <!-- Algorithm Info -->
+          <div class="algo-info">
+            <h3>Oscillometric Method</h3>
+            <p>The oscillometric method detects blood pressure by analyzing pressure oscillations in the cuff during controlled deflation. The <strong>Maximum Amplitude Oscillation (MAO)</strong> corresponds to <strong>MAP</strong>. SYS and DIA are derived from characteristic ratios of the MAO envelope.</p>
+            <div class="algo-ratios">
+              <div class="ratio-item">
+                <span class="ratio-label">SYS Ratio</span>
+                <span class="ratio-value">0.55 × MAO</span>
+              </div>
+              <div class="ratio-item">
+                <span class="ratio-label">DIA Ratio</span>
+                <span class="ratio-value">0.85 × MAO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Measurement Log -->
+      <div class="log-panel glass-card" id="log-panel">
+        <div class="panel-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Measurement History
+          </h2>
+          <button class="icon-btn" id="btn-clear-log" title="Clear History">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+        <div class="log-table-wrapper">
+          <table class="log-table" id="log-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Time</th>
+                <th>SYS</th>
+                <th>DIA</th>
+                <th>MAP</th>
+                <th>BPM</th>
+                <th>Classification</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="log-tbody">
+              <tr class="empty-row">
+                <td colspan="8">No measurements recorded yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ SIGNAL ANALYSIS TAB ============ -->
+    <section class="tab-content" id="content-signals">
+      <div class="signals-layout">
+        <div class="signal-panel glass-card">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Raw Pressure Signal
+            </h2>
+          </div>
+          <div class="canvas-wrapper signal-canvas-wrapper">
+            <canvas id="raw-signal-canvas"></canvas>
+            <div class="canvas-overlay" id="raw-signal-overlay">
+              <p>Run analysis on Dashboard to see signals</p>
+            </div>
+          </div>
+        </div>
+        <div class="signal-panel glass-card">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Filtered Oscillation Component
+            </h2>
+          </div>
+          <div class="canvas-wrapper signal-canvas-wrapper">
+            <canvas id="filtered-signal-canvas"></canvas>
+            <div class="canvas-overlay" id="filtered-signal-overlay">
+              <p>Run analysis on Dashboard to see signals</p>
+            </div>
+          </div>
+        </div>
+        <div class="signal-panel glass-card">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+              Oscillation Envelope &amp; Thresholds
+            </h2>
+          </div>
+          <div class="canvas-wrapper signal-canvas-wrapper">
+            <canvas id="envelope-detail-canvas"></canvas>
+            <div class="canvas-overlay" id="envelope-detail-overlay">
+              <p>Run analysis on Dashboard to see signals</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signal Processing Parameters -->
+        <div class="params-panel glass-card">
+          <div class="panel-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              Algorithm Parameters
+            </h2>
+          </div>
+          <div class="params-body">
+            <div class="param-row">
+              <label for="param-sys-ratio">SYS Ratio</label>
+              <input type="range" id="param-sys-ratio" min="0.3" max="0.8" step="0.01" value="0.55" class="param-slider">
+              <span class="param-value" id="param-sys-ratio-val">0.55</span>
+            </div>
+            <div class="param-row">
+              <label for="param-dia-ratio">DIA Ratio</label>
+              <input type="range" id="param-dia-ratio" min="0.5" max="0.95" step="0.01" value="0.85" class="param-slider">
+              <span class="param-value" id="param-dia-ratio-val">0.85</span>
+            </div>
+            <div class="param-row">
+              <label for="param-hp-cutoff">HP Cutoff (Hz)</label>
+              <input type="range" id="param-hp-cutoff" min="0.1" max="5.0" step="0.1" value="0.5" class="param-slider">
+              <span class="param-value" id="param-hp-cutoff-val">0.5</span>
+            </div>
+            <div class="param-row">
+              <label for="param-sample-rate">Sample Rate (Hz)</label>
+              <input type="range" id="param-sample-rate" min="50" max="2000" step="50" value="500" class="param-slider">
+              <span class="param-value" id="param-sample-rate-val">500</span>
+            </div>
+            <button class="action-btn secondary" id="btn-reanalyze">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Re-analyze with Parameters
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT TAB ============ -->
+    <section class="tab-content" id="content-about">
+      <div class="about-layout">
+        <div class="about-hero glass-card">
+          <img src="../images/cuffncode.png" alt="CuffnCode Logo" class="about-logo">
+          <h1>CuffnCode</h1>
+          <p class="about-tagline">A retrofitted blood pressure measurement system for teaching and research</p>
+          <p class="about-funding">Funded by IFAC Activity Fund (July 2025 – June 2026)</p>
+        </div>
+
+        <div class="about-grid">
+          <div class="about-card glass-card">
+            <h3>📐 Analog Front End</h3>
+            <img src="../images/AFE.png" alt="AFE Schematic" class="about-img" id="about-afe-img">
+            <p>Low-noise analog front end using <strong>AD620</strong> instrumentation amplifier (G ≈ 105) and <strong>TLC2272</strong> for ~1.5V reference offset. Designed for millivolt bridge sensors like MPS20N0040D.</p>
+            <div class="spec-grid">
+              <div class="spec-item">
+                <span class="spec-label">Gain</span>
+                <span class="spec-value">≈ 105</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">RF Filter</span>
+                <span class="spec-value">~340 kHz</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">LPF</span>
+                <span class="spec-value">~2.35 kHz</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Offset</span>
+                <span class="spec-value">~1.5V</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-card glass-card">
+            <h3>🔬 Sensor & Components</h3>
+            <div class="component-list">
+              <div class="component-item">
+                <strong>MPS20N0040D</strong>
+                <p>Millivolt-level bridge sensor (≈50–100 mV full-scale; 4–6 kΩ). Commonly used in hobbyist sphygmomanometers.</p>
+              </div>
+              <div class="component-item">
+                <strong>AD620</strong>
+                <p>Instrumentation amplifier. Relatively cheap and widely available. R<sub>G</sub> = 470Ω → G ≈ 105.</p>
+              </div>
+              <div class="component-item">
+                <strong>TLC2272</strong>
+                <p>Dual, low-noise, rail-to-rail operational amplifier for reference voltage offset generation.</p>
+              </div>
+              <div class="component-item">
+                <strong>STM32F411CE</strong>
+                <p>The "Black Pill" — digital processor/controller for ADC sampling and signal processing.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-card glass-card full-width">
+            <h3>🏗️ Complete Device</h3>
+            <img src="../images/complete_device.png" alt="Complete Device" class="about-img wide" id="about-device-img">
+            <p>Retrofitted pump system with blood pressure cuff, electronic control, and analog signal conditioning.</p>
+          </div>
+
+          <div class="about-card glass-card">
+            <h3>⚠️ Safety Notes</h3>
+            <ul class="safety-list">
+              <li>MPS20N0040D is fragile — avoid over-pressure</li>
+              <li>If powering from USB, beware ground noise from the host PC</li>
+              <li>A ferrite on the USB cable can help reduce noise</li>
+              <li>This web tool is for educational purposes only — not medical advice</li>
+            </ul>
+          </div>
+
+          <div class="about-card glass-card">
+            <h3>📚 Credits & References</h3>
+            <ul class="credits-list">
+              <li><a href="https://www.youtube.com/watch?v=O0-iczIq1aU" target="_blank" rel="noopener">Instrumentation amplifier intro (YouTube)</a></li>
+              <li><a href="https://blog.robertelder.org/cjmcu-333-ina-333-instrumentation-amplifier/" target="_blank" rel="noopener">INA333 review with AD620 suggestion</a></li>
+              <li><a href="https://www.analog.com/media/en/training-seminars/design-handbooks/designers-guide-instrument-amps-complete.pdf" target="_blank" rel="noopener">Designer's Guide to Instrumentation Amplifiers (3rd Ed.)</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="footer">
+    <p>&copy; 2025-2026 CuffnCode — IFAC Activity Fund Project &bull; For educational and research purposes only</p>
+  </footer>
+
+  <script src="app.js?v=3"></script>
+</body>
+</html>
